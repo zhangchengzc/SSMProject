@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.security.dao.NetFlowDOMapper" >
+  <resultMap id="BaseResultMap" type="com.security.bean.NetFlowDO" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="date" property="date" jdbcType="VARCHAR" />
+    <result column="protocol_type" property="protocolType" jdbcType="VARCHAR" />
+    <result column="duration" property="duration" jdbcType="VARCHAR" />
+    <result column="source_ip" property="sourceIp" jdbcType="VARCHAR" />
+    <result column="source_port" property="sourcePort" jdbcType="VARCHAR" />
+    <result column="dest_ip" property="destIp" jdbcType="VARCHAR" />
+    <result column="dest_port" property="destPort" jdbcType="VARCHAR" />
+    <result column="source_send_byte" property="sourceSendByte" jdbcType="VARCHAR" />
+    <result column="dest_send_byte" property="destSendByte" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <select id = "listNetFlowBySourceIP" parameterType="java.lang.String" resultMap="BaseResultMap">
+    SELECT * FROM netflow WHERE source_ip = #{sourceIP}
+  </select>
+
+  <insert id = "insertNetFlow" parameterType="java.util.List">
+    insert into netflow (date,protocol_type,duration,source_ip,source_port,dest_ip,dest_port,source_send_byte,dest_send_byte)
+    values
+    <foreach collection="list" item="item" index="index" separator=",">
+      <foreach collection="item" index="index" item="it" open="(" separator="," close=")">
+        #{it}
+      </foreach>
+    </foreach>
+  </insert>
+</mapper>

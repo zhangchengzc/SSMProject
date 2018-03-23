@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+
+    <!--引入配置文件-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:config/jdbc.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <!-- data source configuration -->
+        <property name="initialSize" value="100"/><!-- initial connections -->
+        <property name="maxActive" value="200"/><!-- MAX connections -->
+        <!--<property name="maxIdle" value="50"/>&lt;!&ndash; MAX idle connections &ndash;&gt;-->
+        <property name="minIdle" value="10"/><!-- MIN idle connections -->
+        <!-- 处理mysql 8小时自动断开连接的问题 -->
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="validationQuery" value="select 1"/>
+        <property name="timeBetweenEvictionRunsMillis" value="20000"/>
+        <!--<property name="numTestsPerEvictionRun" value="100"/>-->
+        <property name="filters" value="${druid.filters}"/>
+    </bean>
+
+    <!--扫描mybatis mapper类-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.security.dao"/>
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mapperLocations" value="classpath:mybatis/mapper/*.xml"/>
+        <property name="configLocation" value="classpath:mybatis/config/mybatis-config.xml"/>
+    </bean>
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!-- 线程池 -->
+    <!--spring线程池-->
+    <bean id="threadPool" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <!--核心线程数-->
+        <property name="corePoolSize" value="8"/>
+        <!--最大线程数-->
+        <property name="maxPoolSize" value="20"/>
+        <!--队列最大长度-->
+        <property name="queueCapacity" value="200"/>
+        <!--线程池维护线程所允许的空闲时间-->
+        <property name="keepAliveSeconds" value="300"/>
+        <!--程序关闭时等待线程执行完毕-->
+        <property name="waitForTasksToCompleteOnShutdown" value="true"/>
+    </bean>
+
+    <context:component-scan base-package="com.security.*"/>
+
+    <bean id="statJob" class="com.security.controller.FirstView" />
+    <task:scheduled-tasks>
+        <task:scheduled ref="statJob" method="index" initial-delay="10000" fixed-delay="10000"/>
+    </task:scheduled-tasks>
+
+
+</beans>
